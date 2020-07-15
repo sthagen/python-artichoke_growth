@@ -51,13 +51,10 @@ def main(argv=None):
     print(f"#1. level ==> prefix ...")
     prefixes = [prefix for prefix in base_path.iterdir()]
     DEBUG and print(f"    got: {prefixes}")
-    print(f"#2. level ==> leaf --> prefix ...")
-    prefix_leafs = [leaf for prefix in prefixes for leaf in prefix.iterdir() ]
-    DEBUG and print(f"    got: {prefix_leafs}")
 
-    print(f"#Visiting {len(prefix_leafs)} data folders for files matching their sha1 checksum ...")
+    print(f"#Visiting {len(prefixes)} data folders for files matching their sha1 checksum ...")
     file_paths = []
-    for data_folder in prefix_leafs:
+    for data_folder in prefixes:
         for file_path in data_folder.iterdir():
             file_paths.append(file_path)
 
