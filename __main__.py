@@ -9,6 +9,9 @@ import sys
 import time
 from typing import Any, Dict, Generator, List, Union
 
+DEBUG_VAR = "AG_DEBUG"
+DEBUG = os.getenv(DEBUG_VAR)
+
 ENCODING = "utf-8"
 ENCODING_ERRORS_POLICY = "ignore"
 
@@ -43,6 +46,25 @@ def main(argv=None):
         return 2
 
     print(f"Job visiting binary repository manager file store root ({brm_fs_root}) starts at {naive_timestamp()}")
+    base_path = pathlib.Path(brm_fs_root)
+    print(f"#Recursing into {base_path} ...")
+    print(f"#1. level ==> prefix ...")
+    prefixes = [prefix for prefix in base_path.iterdir()]
+    DEBUG and print(f"    got: {prefixes}")
+    print(f"#2. level ==> leaf --> prefix ...")
+    prefix_leafs = [leaf for prefix in prefixes for leaf in prefix.iterdir() ]
+    DEBUG and print(f"    got: {prefix_leafs}")
+
+    print(f"#Visiting {len(prefix_leafs)} data folders for files matching their sha1 checksum ...")
+    file_paths = []
+    for data_folder in prefix_leafs:
+        for file_path in data_folder.iterdir():
+            file_paths.append(file_path)
+
+    print(f"#Processing the {len(file_paths)} files matching their sha1 checksum ...")
+    for file_path in file_paths:
+        DEBUG and print("=" * 80)
+        DEBUG and print(f"Processing {file_path} ...")
 
     print(f"Job finished at {naive_timestamp()}")
     return 0
