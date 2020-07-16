@@ -77,7 +77,7 @@ def main(argv=None):
         return 2
 
     print(f"Job visiting file store starts at {naive_timestamp()}")
-    same_ts, found, found_bytes, total = {}, 0, 0, 0
+    found, found_bytes, total = 0, 0, 0
     for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
         total += 1
         DEBUG and print("=" * 80)
@@ -90,14 +90,8 @@ def main(argv=None):
             print(f", size={size_bytes} bytes, created={c_time}, modified={m_time}", end="")
             file_type = mime_type(file_path)
             print(f", mime_type='{file_type}'")
-            ic_time = int(c_time)
-            if ic_time not in same_ts:
-                same_ts[ic_time] = []
-            same_ts[ic_time].append((c_time, m_time, file_type, size_bytes, file_path.name))
-
     print(f"Found {found} and ignored {total-found} artifacts below {brm_fs_root}")
     print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)")
-    print(f"Total amount of packages is {len(same_ts)} (count of distinct creation time secs)")
     print(f"Job visiting file store finished at {naive_timestamp()}")
     return 0
 
