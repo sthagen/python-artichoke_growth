@@ -23,14 +23,6 @@ if not brm_fs_root:
     )
 
 TS_FORMAT = "%Y-%m-%d %H:%M:%S"
-FILE_TS_FORMAT = "%Y%m%dT%H%M%S"
-A_TS = dti.datetime.now()
-TS_THIS_YEAR = A_TS.strftime("%Y")
-TS_THIS_MONTH = A_TS.strftime("%Y-%m")
-TS_M_NOW = TS_THIS_MONTH[-2:]
-A_TIME = time.mktime(A_TS.timetuple())
-M_TIME = A_TIME
-
 GIGA = 2 << (30 - 1)
 
 
