@@ -73,26 +73,26 @@ def main(argv=None):
     """Drive the tree visitor."""
     argv = argv if argv else sys.argv[1:]
     if argv:
-        print("ERROR no arguments expected.")
+        print("ERROR no arguments expected.", file=sys.stderr)
         return 2
 
-    print(f"Job visiting file store starts at {naive_timestamp()}")
+    print(f"Job visiting file store starts at {naive_timestamp()}", file=sys.stderr)
     found, found_bytes, total = 0, 0, 0
     for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
         total += 1
-        DEBUG and print("=" * 80)
-        DEBUG and print(f"Processing {file_path} ...")
+        DEBUG and print("=" * 80, file=sys.stderr)
+        DEBUG and print(f"Processing {file_path} ...", file=sys.stderr)
         if file_path.is_file() and possible_sha1(file_path.name):
             found += 1
-            print(f"- {file_path.name}", end="")
+            print(f"{file_path.name}", end="")
             size_bytes, c_time, m_time = file_metrics(file_path)
             found_bytes += size_bytes
-            print(f", size={size_bytes} bytes, created={c_time}, modified={m_time}", end="")
+            print(f",{size_bytes},{c_time},{m_time}", end="")
             file_type = mime_type(file_path)
-            print(f", mime_type='{file_type}'")
-    print(f"Found {found} and ignored {total-found} artifacts below {brm_fs_root}")
-    print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)")
-    print(f"Job visiting file store finished at {naive_timestamp()}")
+            print(f",'{file_type}'")
+    print(f"Found {found} and ignored {total-found} artifacts below {brm_fs_root}", file=sys.stderr)
+    print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
+    print(f"Job visiting file store finished at {naive_timestamp()}", file=sys.stderr)
     return 0
 
 
