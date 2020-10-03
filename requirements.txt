@@ -1,4 +1,7 @@
 black
+beautifulsoup4
+coverage
 flake8
 pylint
 pytest
+requests
