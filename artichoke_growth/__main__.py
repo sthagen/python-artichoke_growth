@@ -26,9 +26,11 @@ if not brm_fs_root:
     )
 
 BRM_HASH_POLICY = "BRM_HASH_POLICY"
-brm_hash_policy = os.getenv(BRM_HASH_POLICY, "")
-if not brm_hash_policy:
-    brm_hash_policy = BRM_HASH_POLICY_DEFAULT
+brm_hash_policy = os.getenv(BRM_HASH_POLICY, BRM_HASH_POLICY_DEFAULT)
+if brm_hash_policy not in BRM_HASH_POLICIES_KNOWN:
+    raise RuntimeError(
+        f"Please set {BRM_HASH_POLICY} to a known hash policy in ({', '.join(BRM_HASH_POLICIES_KNOWN)})"
+    )
 
 TS_FORMAT = "%Y-%m-%d %H:%M:%S"
 GIGA = 2 << (30 - 1)
