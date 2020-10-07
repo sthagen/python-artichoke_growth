@@ -15,12 +15,20 @@ DEBUG = os.getenv(DEBUG_VAR)
 ENCODING = "utf-8"
 ENCODING_ERRORS_POLICY = "ignore"
 
+BRM_HASH_POLICY_DEFAULT = "sha256"
+BRM_HASH_POLICIES_KNOWN = (BRM_HASH_POLICY_DEFAULT, "sha1")
+
 BRM_FS_ROOT = "BRM_FS_ROOT"
 brm_fs_root = os.getenv(BRM_FS_ROOT, "")
 if not brm_fs_root:
     raise RuntimeError(
         f"Please set {BRM_FS_ROOT} to the root of the file system storage like /opt/brm/data/filestore/"
     )
+
+BRM_HASH_POLICY = "BRM_HASH_POLICY"
+brm_hash_policy = os.getenv(BRM_HASH_POLICY, "")
+if not brm_hash_policy:
+    brm_hash_policy = BRM_HASH_POLICY_DEFAULT
 
 TS_FORMAT = "%Y-%m-%d %H:%M:%S"
 GIGA = 2 << (30 - 1)
@@ -36,6 +44,32 @@ def possible_sha1(text):
     except ValueError:
         return False
     return True
+
+
+def possible_sha256(text):
+    """Fast and shallow sha256 rep validity probe.
+
+    Example:
+
+    1a7cc77e88cc15b4cbbdc8543a34a445fb386c41b1fb57bae94548dda19972f8
+    """
+    sha256_rep_length, base = 64, 16
+    if len(text) != sha256_rep_length:
+        return False
+    try:
+        _ = int(text, base)
+    except ValueError:
+        return False
+    return True
+
+
+def possible_hash(text, hash_policy=BRM_HASH_POLICY_DEFAULT):
+    """Fast and shallow hash rep validity probe."""
+    probe = {
+        BRM_HASH_POLICY_DEFAULT: possible_sha256,
+        "sha1": possible_sha1,
+    }
+    return probe[hash_policy](text)
 
 
 def naive_timestamp(timestamp=None):
@@ -82,7 +116,7 @@ def main(argv=None):
         total += 1
         DEBUG and print("=" * 80, file=sys.stderr)
         DEBUG and print(f"Processing {file_path} ...", file=sys.stderr)
-        if file_path.is_file() and possible_sha1(file_path.name):
+        if file_path.is_file() and possible_hash(file_path.name, brm_hash_policy):
             found += 1
             print(f"{file_path.name}", end="")
             size_bytes, c_time, m_time = file_metrics(file_path)
