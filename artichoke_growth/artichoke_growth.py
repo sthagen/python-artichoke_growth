@@ -36,9 +36,9 @@ TS_FORMAT = "%Y-%m-%d %H:%M:%S"
 GIGA = 2 << (30 - 1)
 
 
-def by_name(text, hash_policy):
+def by_name(text, hash_length):
     """Fast and shallow hash rep validity probe."""
-    hash_rep_length, base = hash_policy, 16
+    hash_rep_length, base = hash_length, 16
     if len(text) != hash_rep_length:
         return False
     try:
