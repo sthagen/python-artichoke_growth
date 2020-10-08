@@ -36,27 +36,10 @@ TS_FORMAT = "%Y-%m-%d %H:%M:%S"
 GIGA = 2 << (30 - 1)
 
 
-def possible_sha1(text):
-    """Fast and shallow sha1 rep validity probe."""
-    sha1_rep_length, base = 40, 16
-    if len(text) != sha1_rep_length:
-        return False
-    try:
-        _ = int(text, base)
-    except ValueError:
-        return False
-    return True
-
-
-def possible_sha256(text):
-    """Fast and shallow sha256 rep validity probe.
-
-    Example:
-
-    1a7cc77e88cc15b4cbbdc8543a34a445fb386c41b1fb57bae94548dda19972f8
-    """
-    sha256_rep_length, base = 64, 16
-    if len(text) != sha256_rep_length:
+def by_name(text, hash_policy):
+    """Fast and shallow hash rep validity probe."""
+    hash_rep_length, base = hash_policy, 16
+    if len(text) != hash_rep_length:
         return False
     try:
         _ = int(text, base)
@@ -68,10 +51,10 @@ def possible_sha256(text):
 def possible_hash(text, hash_policy=BRM_HASH_POLICY_DEFAULT):
     """Fast and shallow hash rep validity probe."""
     probe = {
-        BRM_HASH_POLICY_DEFAULT: possible_sha256,
-        "sha1": possible_sha1,
+        BRM_HASH_POLICY_DEFAULT: 64,
+        "sha1": 40,
     }
-    return probe[hash_policy](text)
+    return by_name(text, probe[hash_policy])
 
 
 def naive_timestamp(timestamp=None):
