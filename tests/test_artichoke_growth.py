@@ -20,3 +20,9 @@ def test_by_name_nok_minimal():
 def test_possible_hash_ok_default():
     text = "0123456789abcdef" * 4
     assert ag.possible_hash(text) is True
+
+
+def test_possible_hash_ok_sha1():
+    text = "0123456789" * 4
+    hash_policy = 'sha1'
+    assert ag.possible_hash(text, hash_policy) is True
