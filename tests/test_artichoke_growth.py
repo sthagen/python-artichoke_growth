@@ -15,3 +15,8 @@ def test_by_name_nok_minimal():
     text = '0123456789abcdeg'
     hash_length = len(text)
     assert ag.by_name(text, hash_length) is False
+
+
+def test_possible_hash_ok_default():
+    text = "0123456789abcdef" * 4
+    assert ag.possible_hash(text) is True
