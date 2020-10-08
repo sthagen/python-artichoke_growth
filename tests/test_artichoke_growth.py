@@ -26,3 +26,9 @@ def test_possible_hash_ok_sha1():
     text = "0123456789" * 4
     hash_policy = 'sha1'
     assert ag.possible_hash(text, hash_policy) is True
+
+
+def test_possible_hash_ok_sha256():
+    text = "abcdef0123456789" * 4
+    hash_policy = 'sha256'
+    assert ag.possible_hash(text, hash_policy) is True
