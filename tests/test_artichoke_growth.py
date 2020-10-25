@@ -55,3 +55,10 @@ def test_walk_hashed_files_ok_sha256():
     data = ag.walk_hashed_files(prefix_data_sha256)
     expectation = f'{prefix_data_sha256}/1a/1a7cc77e88cc15b4cbbdc8543a34a445fb386c41b1fb57bae94548dda19972f8'
     assert str(next(data)) == expectation
+
+
+def test_file_metrics_ok_sha1():
+    data = ag.walk_hashed_files(prefix_data_sha1)
+    a_file_path = next(data)
+    size_bytes, ctime, mtime = ag.file_metrics(a_file_path)
+    assert size_bytes == 323
