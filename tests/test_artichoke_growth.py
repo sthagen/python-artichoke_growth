@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring,unused-import,reimported
+import os
+
 import pytest  # type: ignore
 
+os.environ["BRM_FS_ROOT"] = "tests/fixture/prefix_store/sha1/"
 import artichoke_growth.artichoke_growth as ag
 
 
