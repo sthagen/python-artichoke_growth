@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring,unused-import,reimported
 import os
-
+import pathlib
 import pytest  # type: ignore
 
-os.environ["BRM_FS_ROOT"] = "tests/fixture/prefix_store/sha1/"
+prefix_store_data_root = pathlib.Path('tests', 'fixtures', 'prefix_store')
+prefix_data_sha1 = pathlib.Path(prefix_store_data_root, 'sha1')
+prefix_data_sha256 = pathlib.Path(prefix_store_data_root, 'sha256')
+os.environ["BRM_FS_ROOT"] = str(prefix_data_sha1)
 import artichoke_growth.artichoke_growth as ag
+
+
+# prefix_store_catalog_root = pathlib.Path('tests', 'fixtures', 'catalog')
+# prefix_catalog_sha1 = pathlib.Path(prefix_store_catalog_root, 'sha1')
+# prefix_catalog_sha256 = pathlib.Path(prefix_store_catalog_root, 'sha256')
 
 
 def test_by_name_ok_minimal():
@@ -35,3 +43,15 @@ def test_possible_hash_ok_sha256():
     text = "abcdef0123456789" * 4
     hash_policy = 'sha256'
     assert ag.possible_hash(text, hash_policy) is True
+
+
+def test_walk_hashed_files_ok_sha1():
+    data = ag.walk_hashed_files(prefix_data_sha1)
+    expectation = f'{prefix_data_sha1}/2a/2a3c26457a1df3f5035099ff6ac4e154d3dfe695'
+    assert str(next(data)) == expectation
+
+
+def test_walk_hashed_files_ok_sha256():
+    data = ag.walk_hashed_files(prefix_data_sha256)
+    expectation = f'{prefix_data_sha256}/1a/1a7cc77e88cc15b4cbbdc8543a34a445fb386c41b1fb57bae94548dda19972f8'
+    assert str(next(data)) == expectation
