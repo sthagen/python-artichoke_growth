@@ -22,9 +22,15 @@ def test_by_name_ok_minimal():
     assert ag.by_name(text, hash_length) is True
 
 
-def test_by_name_nok_minimal():
+def test_by_name_nok_domain_minimal():
     text = '0123456789abcdeg'
     hash_length = len(text)
+    assert ag.by_name(text, hash_length) is False
+
+
+def test_by_name_nok_length_minimal():
+    text = '0123456789abcde'
+    hash_length = len(text) + 1
     assert ag.by_name(text, hash_length) is False
 
 
