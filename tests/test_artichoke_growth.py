@@ -62,6 +62,10 @@ def test_file_metrics_ok_sha1():
     a_file_path = next(data)
     size_bytes, ctime, mtime = ag.file_metrics(a_file_path)
     assert size_bytes == 323
+    f_stat = a_file_path.stat()
+    assert f_stat.st_size == size_bytes
+    assert f_stat.st_ctime == ctime
+    assert f_stat.st_mtime == mtime
 
 
 def test_file_metrics_ok_sha256():
@@ -69,3 +73,7 @@ def test_file_metrics_ok_sha256():
     a_file_path = next(data)
     size_bytes, ctime, mtime = ag.file_metrics(a_file_path)
     assert size_bytes == 11
+    f_stat = a_file_path.stat()
+    assert f_stat.st_size == size_bytes
+    assert f_stat.st_ctime == ctime
+    assert f_stat.st_mtime == mtime
