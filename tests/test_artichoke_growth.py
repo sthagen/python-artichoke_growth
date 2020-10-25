@@ -84,3 +84,10 @@ def test_mime_type_ok_sha1():
     a_file_path = next(data)
     expectation = 'application/zip; charset=binary'
     assert ag.mime_type(a_file_path) == expectation
+
+
+def test_mime_type_ok_sha256():
+    data = ag.walk_hashed_files(prefix_data_sha256)
+    a_file_path = next(data)
+    expectation = 'text/x-shellscript; charset=us-ascii'
+    assert ag.mime_type(a_file_path) == expectation
