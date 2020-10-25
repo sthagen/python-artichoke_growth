@@ -62,3 +62,10 @@ def test_file_metrics_ok_sha1():
     a_file_path = next(data)
     size_bytes, ctime, mtime = ag.file_metrics(a_file_path)
     assert size_bytes == 323
+
+
+def test_file_metrics_ok_sha256():
+    data = ag.walk_hashed_files(prefix_data_sha256)
+    a_file_path = next(data)
+    size_bytes, ctime, mtime = ag.file_metrics(a_file_path)
+    assert size_bytes == 11
