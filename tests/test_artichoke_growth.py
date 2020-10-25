@@ -97,3 +97,9 @@ def test_mime_type_ok_sha256():
     a_file_path = next(data)
     expectation = 'text/x-shellscript; charset=us-ascii'
     assert ag.mime_type(a_file_path) == expectation
+
+
+def test_mime_type_nok_no_file():
+    a_file_path = pathlib.Path('does', 'not', 'exist')
+    expectation = 'artichoke/growth'
+    assert ag.mime_type(a_file_path) == expectation

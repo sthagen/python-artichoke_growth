@@ -82,7 +82,8 @@ def mime_type(file_path):
     find_type = ["file", "--mime", file_path]
     try:
         output = subprocess.check_output(find_type, stderr=subprocess.STDOUT).decode()
-        return output.strip().split(":", 1)[1].strip()
+        if not output.strip().endswith('(No such file or directory)'):
+            return output.strip().split(":", 1)[1].strip()
     except subprocess.CalledProcessError:
         pass  # for now
     return 'artichoke/growth'
