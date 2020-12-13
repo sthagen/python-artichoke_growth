@@ -4,4 +4,4 @@ Document some binary repository management storage on systems that provide the f
 ## Status
 Prototype creation phase - nothing here yet (for real).
 
-Note: The default branch (with special meaning for github and gitlab users) has the name `default` :wink:
+**Note**: The name of the default branch is `default`.
