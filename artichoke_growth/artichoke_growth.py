@@ -8,7 +8,6 @@ import os
 import pathlib
 import subprocess
 import sys
-import time
 from typing import Union, Dict, Callable
 
 DEBUG_VAR = "AG_DEBUG"
