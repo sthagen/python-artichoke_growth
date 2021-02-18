@@ -3,11 +3,13 @@
 # pylint: disable=expression-not-assigned,line-too-long
 """Visit folder tree of some binary repository management system and report statistics."""
 import datetime as dti
+import hashlib
 import os
 import pathlib
 import subprocess
 import sys
 import time
+from typing import Union, Dict, Callable
 
 DEBUG_VAR = "AG_DEBUG"
 DEBUG = os.getenv(DEBUG_VAR)
@@ -69,6 +71,27 @@ def walk_hashed_files(base_path):
     for data_folder in base_path.iterdir():
         for file_path in data_folder.iterdir():
             yield file_path
+
+
+def hashes(path_string, algorithms: Union[Dict[str: Callable], None] = None):
+    """Yield hashes per algorithms of path."""
+    if algorithms is None:
+        algorithms = {BRM_HASH_POLICY_DEFAULT: hashlib.sha256}
+    for key in algorithms:
+        if key not in BRM_HASH_POLICIES_KNOWN:
+            raise ValueError("hashes received unexpected algorithm key.")
+
+    path = pathlib.Path(path_string)
+    if not path.is_file():
+        raise IOError("path is no file.")
+
+    accumulator = {k: f() for k, f in algorithms.items()}
+    with open(path, "rb") as in_file:
+        for byte_block in iter(lambda in_f=in_file: in_f.read(BUFFER_BYTES), b""):
+            for k in algorithms:
+                accumulator[k].update(byte_block)
+
+    return {k: f.hexdigest() for k, f in accumulator.items()}
 
 
 def file_metrics(file_path):
