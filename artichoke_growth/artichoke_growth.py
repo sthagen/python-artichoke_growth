@@ -8,7 +8,6 @@ import os
 import pathlib
 import subprocess
 import sys
-from typing import Union, Dict, Callable
 
 DEBUG_VAR = "AG_DEBUG"
 DEBUG = os.getenv(DEBUG_VAR)
@@ -73,7 +72,7 @@ def walk_hashed_files(base_path):
             yield file_path
 
 
-def hashes(path_string, algorithms: Union[Dict[str: Callable], None] = None):
+def hashes(path_string, algorithms=None):
     """Yield hashes per algorithms of path."""
     if algorithms is None:
         algorithms = {BRM_HASH_POLICY_DEFAULT: hashlib.sha256}
