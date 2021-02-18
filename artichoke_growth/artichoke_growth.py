@@ -36,6 +36,7 @@ if brm_hash_policy not in BRM_HASH_POLICIES_KNOWN:
 
 TS_FORMAT = "%Y-%m-%d %H:%M:%S"
 GIGA = 2 << (30 - 1)
+BUFFER_BYTES = 2 << 15
 
 
 def by_name(text, hash_length):
