@@ -144,7 +144,7 @@ def main(argv=None):
                 print(f",{size_bytes},{c_time},{m_time}", end="")
                 file_type = mime_type(file_path)
                 print(f",'{file_type}'")
-                csv_handle.write(f"{','.join((file_path.name, size_bytes, c_time, m_time, *fps, file_type))}\n")
+                csv_handle.write(f"{','.join((file_path.name, str(size_bytes), str(c_time), str(m_time), *fps, file_type))}\n")
 
     print(f"Found {found} and ignored {total-found} artifacts below {brm_fs_root}", file=sys.stderr)
     print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
