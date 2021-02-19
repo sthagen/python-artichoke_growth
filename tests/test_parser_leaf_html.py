@@ -29,4 +29,4 @@ def test_html_leaf_page_parse_fixture():
         parsed.append((f, d, s, u))
     for p in parsed:
         print(p)
-    assert len(p) == 4
+        assert len(p) == 4
