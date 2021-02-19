@@ -119,6 +119,14 @@ def main(argv=None):
         print("ERROR no arguments expected.", file=sys.stderr)
         return 2
 
+    algorithms = None
+    if brm_hash_policy != BRM_HASH_POLICY_DEFAULT:
+        alogorithms = {
+            BRM_HASH_POLICY_DEFAULT: hashlib.sha256,
+            BRM_HASH_POLICY_LEGACY: hashlib.sha1,
+        }
+        print(f"Warning: Store seems to use ({BRM_HASH_POLICY_LEGACY}) - adding ({BRM_HASH_POLICY_DEFAULT})")
+
     print(f"Job visiting file store starts at {naive_timestamp()}", file=sys.stderr)
     found, found_bytes, total = 0, 0, 0
     for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
