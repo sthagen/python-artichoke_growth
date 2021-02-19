@@ -121,7 +121,7 @@ def main(argv=None):
 
     algorithms = None
     if brm_hash_policy != BRM_HASH_POLICY_DEFAULT:
-        alogorithms = {
+        algorithms = {
             BRM_HASH_POLICY_DEFAULT: hashlib.sha256,
             BRM_HASH_POLICY_LEGACY: hashlib.sha1,
         }
