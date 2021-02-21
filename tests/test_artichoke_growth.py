@@ -8,6 +8,8 @@ prefix_store_data_root = pathlib.Path('tests', 'fixtures', 'prefix_store')
 prefix_data_sha1 = pathlib.Path(prefix_store_data_root, 'sha1')
 prefix_data_sha256 = pathlib.Path(prefix_store_data_root, 'sha256')
 os.environ["BRM_FS_ROOT"] = str(prefix_data_sha1)
+prefix_data_proxy = pathlib.Path(prefix_store_data_root, 'proxy', 'brm_proxy_db.csv')
+os.environ["BRM_PROXY_DB"] = str(prefix_data_proxy)
 import artichoke_growth.artichoke_growth as ag
 
 
