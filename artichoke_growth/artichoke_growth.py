@@ -162,6 +162,8 @@ def main(argv=None):
         print("ERROR no arguments expected.", file=sys.stderr)
         return 2
 
+    present = load(brm_proxy_db)
+    
     algorithms = None
     if brm_hash_policy != BRM_HASH_POLICY_DEFAULT:
         algorithms = {
