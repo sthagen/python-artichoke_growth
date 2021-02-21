@@ -174,7 +174,7 @@ def main(argv=None):
 
     print(f"Job visiting file store starts at {naive_timestamp()}", file=sys.stderr)
     found, found_bytes, total = 0, 0, 0
-    with open("temp.csv", "wt") as csv_handle:
+    with open("added.csv", "wt") as csv_handle:
         for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
             total += 1
             DEBUG and print("=" * 80, file=sys.stderr)
