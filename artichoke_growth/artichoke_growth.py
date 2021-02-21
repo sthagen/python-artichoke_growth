@@ -119,9 +119,8 @@ def hashes(path_string, algorithms=None):
 
 
 def file_metrics(file_path):
-    """Retrieve the size in bytes, as well as the create and last modified times for file path."""
-    f_stat = file_path.stat()
-    return f_stat.st_size, f_stat.st_ctime, f_stat.st_mtime
+    """Retrieve the file stats."""
+    return file_path.stat()
 
 
 def mime_type(file_path):
@@ -134,6 +133,12 @@ def mime_type(file_path):
     except subprocess.CalledProcessError:
         pass  # for now
     return 'artichoke/growth'
+
+
+def serialize(file_path, f_stat, fps, file_type):
+    """x"""
+    size_bytes, c_time, m_time = f_stat.st_size, f_stat.st_ctime, f_stat.st_mtime
+    return f"{','.join((file_path.name, str(size_bytes), str(c_time), str(m_time), fps, file_type))}\n"
 
 
 def main(argv=None):
@@ -162,13 +167,10 @@ def main(argv=None):
                 found += 1
                 fingerprints = hashes(file_path, algorithms)
                 fps = f'{",".join([f"{k}:{v}" for k, v in fingerprints.items()])}'
-                print(f"{file_path.name}", end="")
-                size_bytes, c_time, m_time = file_metrics(file_path)
-                found_bytes += size_bytes
-                print(f",{size_bytes},{c_time},{m_time}", end="")
-                file_type = mime_type(file_path)
-                print(f",'{file_type}'")
-                csv_handle.write(f"{','.join((file_path.name, str(size_bytes), str(c_time), str(m_time), fps, file_type))}\n")
+                f_stat = file_metrics(file_path)
+                found_bytes += f_stat.st_size
+                entry = (file_path, f_stat, fps, mime_type(file_path))
+                csv_handle.write(serialize(*entry))
 
     print(f"Found {found} and ignored {total-found} artifacts below {brm_fs_root}", file=sys.stderr)
     print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
