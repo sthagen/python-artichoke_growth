@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=expression-not-assigned,line-too-long
 """Visit folder tree of some binary repository management system and report statistics."""
+import csv
 import datetime as dti
 import hashlib
 import os
@@ -78,6 +79,12 @@ def walk_hashed_files(base_path):
     for data_folder in base_path.iterdir():
         for file_path in data_folder.iterdir():
             yield file_path
+
+
+def load(proxy_db_path):
+    """Load the proxy data as dict."""
+    with open(proxy_db_path, newline='') as handle:
+        return {row[0]: row[1:] for row in csv.reader(handle, delimiter=',', quotechar='|')}
 
 
 def elf_hash(some_bytes: bytes):
