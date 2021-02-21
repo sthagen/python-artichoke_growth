@@ -73,6 +73,30 @@ def walk_hashed_files(base_path):
             yield file_path
 
 
+def elf_hash(some_bytes: bytes):
+    """The ELF hash.
+
+    unsigned long ElfHash(const unsigned char *s) {
+        unsigned long h = 0, high;
+        while (*s) {
+            h = (h << 4) + *s++;
+            if (high = h & 0xF0000000)
+                h ^= high >> 24;
+            h &= ~high;
+        }
+        return h;
+    }
+    """
+    h = 0
+    for s in some_bytes:
+        h = (h << 4) + s
+        high = h & 0xF0000000
+        if high:
+            h ^= (high >> 24)
+        h &= ~high
+    return h
+
+
 def hashes(path_string, algorithms=None):
     """Yield hashes per algorithms of path."""
     if algorithms is None:
