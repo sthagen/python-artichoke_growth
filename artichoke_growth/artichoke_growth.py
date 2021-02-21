@@ -149,10 +149,10 @@ def mime_type(file_path):
     return 'artichoke/growth'
 
 
-def serialize(file_path, f_stat, fps, file_type):
+def serialize(storage_hash, f_stat, fps, file_type):
     """x"""
     size_bytes, c_time, m_time = f_stat.st_size, f_stat.st_ctime, f_stat.st_mtime
-    return f"{','.join((file_path.name, str(size_bytes), str(c_time), str(m_time), fps, file_type))}\n"
+    return f"{','.join((storage_hash, str(size_bytes), str(c_time), str(m_time), fps, file_type))}\n"
 
 
 def main(argv=None):
@@ -162,8 +162,8 @@ def main(argv=None):
         print("ERROR no arguments expected.", file=sys.stderr)
         return 2
 
-    present = load(brm_proxy_db)
-    
+    proxy = load(brm_proxy_db)
+
     algorithms = None
     if brm_hash_policy != BRM_HASH_POLICY_DEFAULT:
         algorithms = {
@@ -179,13 +179,14 @@ def main(argv=None):
             total += 1
             DEBUG and print("=" * 80, file=sys.stderr)
             DEBUG and print(f"Processing {file_path} ...", file=sys.stderr)
-            if file_path.is_file() and possible_hash(file_path.name, brm_hash_policy):
+            storage_hash = file_path.name
+            if file_path.is_file() and storage_hash not in proxy and possible_hash(storage_hash, brm_hash_policy):
                 found += 1
                 fingerprints = hashes(file_path, algorithms)
                 fps = f'{",".join([f"{k}:{v}" for k, v in fingerprints.items()])}'
                 f_stat = file_metrics(file_path)
                 found_bytes += f_stat.st_size
-                entry = (file_path, f_stat, fps, mime_type(file_path))
+                entry = (storage_hash, f_stat, fps, mime_type(file_path))
                 csv_handle.write(serialize(*entry))
 
     print(f"Found {found} and ignored {total-found} artifacts below {brm_fs_root}", file=sys.stderr)
