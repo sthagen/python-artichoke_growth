@@ -66,23 +66,23 @@ def test_walk_hashed_files_ok_sha256():
 def test_file_metrics_ok_sha1():
     data = ag.walk_hashed_files(prefix_data_sha1)
     a_file_path = next(data)
-    size_bytes, ctime, mtime = ag.file_metrics(a_file_path)
-    assert size_bytes == 323
+    x_stat = ag.file_metrics(a_file_path)
+    assert x_stat.st_size == 323
     f_stat = a_file_path.stat()
-    assert f_stat.st_size == size_bytes
-    assert f_stat.st_ctime == ctime
-    assert f_stat.st_mtime == mtime
+    assert f_stat.st_size == x_stat.st_size
+    assert f_stat.st_ctime == x_stat.st_ctime
+    assert f_stat.st_mtime == x_stat.st_mtime
 
 
 def test_file_metrics_ok_sha256():
     data = ag.walk_hashed_files(prefix_data_sha256)
     a_file_path = next(data)
-    size_bytes, ctime, mtime = ag.file_metrics(a_file_path)
-    assert size_bytes == 11
+    x_stat = ag.file_metrics(a_file_path)
+    assert x_stat.st_size == 11
     f_stat = a_file_path.stat()
-    assert f_stat.st_size == size_bytes
-    assert f_stat.st_ctime == ctime
-    assert f_stat.st_mtime == mtime
+    assert f_stat.st_size == x_stat.st_size
+    assert f_stat.st_ctime == x_stat.st_ctime
+    assert f_stat.st_mtime == x_stat.st_mtime
 
 
 def test_mime_type_ok_sha1():
