@@ -103,3 +103,7 @@ def test_mime_type_nok_no_file():
     a_file_path = pathlib.Path('does', 'not', 'exist')
     expectation = 'artichoke/growth'
     assert ag.mime_type(a_file_path) == expectation
+
+
+def test_elf_hash():
+    assert ag.elf_hash(b'msbuild.exe') == 0x53D525
