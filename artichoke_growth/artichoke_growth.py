@@ -33,6 +33,13 @@ if brm_hash_policy not in BRM_HASH_POLICIES_KNOWN:
         f"Please set {BRM_HASH_POLICY} to a known hash policy in ({', '.join(BRM_HASH_POLICIES_KNOWN)})"
     )
 
+BRM_PROXY_DB = "BRM_PROXY_DB"
+brm_proxy_db = os.getenv(BRM_PROXY_DB, "")
+if not brm_proxy_db:
+    raise RuntimeError(
+        f"Please set {BRM_PROXY_DB} as the path to the file system proxy like some/path/brm_proxy_db.csv"
+    )
+
 TS_FORMAT = "%Y-%m-%d %H:%M:%S"
 GIGA = 2 << (30 - 1)
 BUFFER_BYTES = 2 << 15
