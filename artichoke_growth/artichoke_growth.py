@@ -190,19 +190,19 @@ def main(argv=None):
                 found_bytes += f_stat.st_size
                 entry = (storage_hash, f_stat, fps, mime_type(file_path))
                 csv_handle.write(serialize(*entry))
-                keep[storage_hash] = (storage_hash, f_stat, fps, mime_type(file_path))
+                keep[storage_hash] = (storage_hash, str(f_stat.size_bytes), str(f_stat.c_time), str(f_stat.m_time), fps, mime_type(file_path))
             if storage_hash in proxy:
                 del proxy[storage_hash]  # After processing proxy holds gone entries (tombstones)
 
     gone = len(proxy)
     with open("gone.csv", "wt") as csv_handle:
         for k, v in proxy.items():
-            csv_handle.write(serialize(k, *v))
+            csv_handle.write(f"{','.join((k, *v))}\n")
 
     kept = len(keep)
     with open("proxy.csv", "wt") as csv_handle:
         for k, v in keep.items():
-            csv_handle.write(serialize(k, *v))
+            csv_handle.write(f"{','.join((k, *v))}\n")
 
     print(f"Found {found} and ignored {total-found} artifacts below {brm_fs_root}", file=sys.stderr)
     print(f"Identified {gone} tombstones below {brm_fs_root}", file=sys.stderr)
@@ -210,7 +210,6 @@ def main(argv=None):
     print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
     print(f"Job visiting file store finished at {naive_timestamp()}", file=sys.stderr)
     return 0
-
 
 
 if __name__ == "__main__":
