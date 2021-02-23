@@ -42,7 +42,8 @@ if not brm_proxy_db:
         f"Please set {BRM_PROXY_DB} as the path to the file system proxy like some/path/brm_proxy_db.csv"
     )
 
-TS_FORMAT = "%Y-%m-%d %H:%M:%S"
+TS_FORMAT_HR = "%Y-%m-%d %H:%M:%S"
+TS_FORMAT_DB = "%Y%m%dT%H%M%SZ"
 GIGA = 2 << (30 - 1)
 BUFFER_BYTES = 2 << 15
 
@@ -71,8 +72,15 @@ def possible_hash(text, hash_policy=BRM_HASH_POLICY_DEFAULT):
 def naive_timestamp(timestamp=None):
     """Logging helper."""
     if timestamp:
-        return timestamp.strftime(TS_FORMAT)
-    return dti.datetime.now().strftime(TS_FORMAT)
+        return timestamp.strftime(TS_FORMAT_HR)
+    return dti.datetime.now().strftime(TS_FORMAT_HR)
+
+
+def db_timestamp(timestamp=None):
+    """Logging helper."""
+    if timestamp:
+        return timestamp.strftime(TS_FORMAT_DB)
+    return dti.datetime.now().strftime(TS_FORMAT_DB)
 
 
 def walk_hashed_files(base_path):
@@ -174,9 +182,14 @@ def main(argv=None):
         }
         print(f"Warning: Store seems to use ({BRM_HASH_POLICY_LEGACY}) - adding ({BRM_HASH_POLICY_DEFAULT})")
 
-    print(f"Job visiting file store starts at {naive_timestamp()}", file=sys.stderr)
+    start_ts = dti.datetime.now()
+    added_db = f"added-{db_timestamp(start_ts)}.csv"
+    gone_db = f"gone-{db_timestamp(start_ts)}.csv"
+    proxy_db = f"proxy-{db_timestamp(start_ts)}.csv"
+
+    print(f"Job visiting file store starts at {naive_timestamp(start_ts)}", file=sys.stderr)
     found, found_bytes, total = 0, 0, 0
-    with open("added.csv", "wt") as csv_handle:
+    with open(added_db, "wt") as csv_handle:
         for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
             total += 1
             DEBUG and print("=" * 80, file=sys.stderr)
@@ -195,18 +208,18 @@ def main(argv=None):
                 del proxy[storage_hash]  # After processing proxy holds gone entries (tombstones)
 
     gone = len(proxy)
-    with open("gone.csv", "wt") as csv_handle:
+    with open(gone_db, "wt") as csv_handle:
         for k, v in proxy.items():
             csv_handle.write(f"{','.join((k, *v))}\n")
 
     kept = len(keep)
-    with open("proxy.csv", "wt") as csv_handle:
+    with open(proxy_db, "wt") as csv_handle:
         for k, v in keep.items():
             csv_handle.write(f"{','.join((k, *v))}\n")
 
-    print(f"Found {found} and ignored {total-found} artifacts below {brm_fs_root}", file=sys.stderr)
-    print(f"Identified {gone} tombstones below {brm_fs_root}", file=sys.stderr)
-    print(f"Updated Proxy has {kept} entries below {brm_fs_root}", file=sys.stderr)
+    print(f"Added {found} at {added_db} and ignored {total-found} artifacts below {brm_fs_root}", file=sys.stderr)
+    print(f"Identified {gone} tombstones at {gone_db}", file=sys.stderr)
+    print(f"Updated Proxy has {kept} entries at {proxy_db}", file=sys.stderr)
     print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
     print(f"Job visiting file store finished at {naive_timestamp()}", file=sys.stderr)
     return 0
