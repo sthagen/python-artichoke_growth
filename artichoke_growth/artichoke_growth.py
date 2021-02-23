@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=expression-not-assigned,line-too-long
 """Visit folder tree of some binary repository management system and report statistics."""
+import copy
 import csv
 import datetime as dti
 import hashlib
@@ -163,6 +164,7 @@ def main(argv=None):
         return 2
 
     proxy = load(brm_proxy_db)
+    keep = copy.deepcopy(proxy)
 
     algorithms = None
     if brm_hash_policy != BRM_HASH_POLICY_DEFAULT:
@@ -188,11 +190,27 @@ def main(argv=None):
                 found_bytes += f_stat.st_size
                 entry = (storage_hash, f_stat, fps, mime_type(file_path))
                 csv_handle.write(serialize(*entry))
+                keep[storage_hash] = (storage_hash, f_stat, fps, mime_type(file_path))
+            if storage_hash in proxy:
+                del proxy[storage_hash]  # After processing proxy holds gone entries (tombstones)
+
+    gone = len(proxy)
+    with open("gone.csv", "wt") as csv_handle:
+        for k, v in proxy.items():
+            csv_handle.write(serialize(k, *v))
+
+    kept = len(keep)
+    with open("proxy.csv", "wt") as csv_handle:
+        for k, v in keep.items():
+            csv_handle.write(serialize(k, *v))
 
     print(f"Found {found} and ignored {total-found} artifacts below {brm_fs_root}", file=sys.stderr)
+    print(f"Identified {gone} tombstones below {brm_fs_root}", file=sys.stderr)
+    print(f"Updated Proxy has {kept} entries below {brm_fs_root}", file=sys.stderr)
     print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
     print(f"Job visiting file store finished at {naive_timestamp()}", file=sys.stderr)
     return 0
+
 
 
 if __name__ == "__main__":
