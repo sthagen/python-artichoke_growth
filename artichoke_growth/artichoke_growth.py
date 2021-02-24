@@ -59,7 +59,7 @@ def archive(stream, file_path):
         file_path = file_path.with_suffix(file_path.suffix + XZ_EXT)
     with lzma.open(file_path, "w", check=lzma.CHECK_SHA256, filters=XZ_FILTERS) as f:
         for entry in stream:
-            f.write(entry)
+            f.write(entry.encode(encoding=ENCODING, errors=ENCODING_ERRORS_POLICY))
 
 
 def by_name(text, hash_length):
