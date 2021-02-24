@@ -48,6 +48,10 @@ TS_FORMAT_DB = "%Y%m%dT%H%M%SZ"
 GIGA = 2 << (30 - 1)
 BUFFER_BYTES = 2 << 15
 
+STORE_ROOT = "store"
+STORE_PATH_DELTA = pathlib.Path(STORE_ROOT, "delta")
+STORE_PATH_PROXY = pathlib.Path(STORE_ROOT, "proxy")
+
 XZ_FILTERS = [{"id": lzma.FILTER_LZMA2, "preset": 7 | lzma.PRESET_EXTREME}]
 XZ_EXT = ".xz"
 
@@ -224,9 +228,9 @@ def main(argv=None):
         if storage_hash in proxy:
             del proxy[storage_hash]  # After processing proxy holds gone entries (tombstones)
 
-    added_db = f"added-{db_timestamp(start_ts)}.csv"
-    gone_db = f"gone-{db_timestamp(start_ts)}.csv"
-    proxy_db = f"proxy-{db_timestamp(start_ts)}.csv"
+    added_db = pathlib.Path(STORE_PATH_DELTA, f"added-{db_timestamp(start_ts)}.csv")
+    gone_db = pathlib.Path(STORE_PATH_DELTA, f"gone-{db_timestamp(start_ts)}.csv")
+    proxy_db = pathlib.Path(STORE_PATH_PROXY, f"proxy-{db_timestamp(start_ts)}.csv")
 
     added, gone, kept = len(add), len(proxy), len(keep)
 
