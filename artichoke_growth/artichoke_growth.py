@@ -233,16 +233,17 @@ def main(argv=None):
         else:
             update.add(storage_hash)
 
-    entered_bytes, updated_bytes, left_bytes = 0, 0, 0
-    for k, v in proxy:
+    entered_bytes, ignored_bytes, updated_bytes, left_bytes = 0, 0, 0, 0
+    for k, v in proxy.items():
         if k in update:
-            updated_bytes += int(v[1])
+            ignored_bytes += int(v[1])
         else:
             left_bytes += int(v[1])
             leave[k] = copy.deepcopy(v)
             del proxy[k]
+    updated_bytes += ignored_bytes
 
-    for k, v in enter:
+    for k, v in enter.items():
         entered_bytes += int(v[1])
         proxy[k] = copy.deepcopy(v)
     updated_bytes += entered_bytes
@@ -250,15 +251,18 @@ def main(argv=None):
     added_db = pathlib.Path(STORE_PATH_DELTA, f"added-{db_timestamp(start_ts)}.csv")
     proxy_db = pathlib.Path(STORE_PATH_PROXY, f"proxy-{db_timestamp(start_ts)}.csv")
     gone_db = pathlib.Path(STORE_PATH_DELTA, f"gone-{db_timestamp(start_ts)}.csv")
+    pathlib.Path(STORE_PATH_DELTA).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(STORE_PATH_PROXY).mkdir(parents=True, exist_ok=True)
 
     entered, updated, left = len(enter), len(proxy), len(leave)
-
+    ignored = total-entered
     for db, kind in ((added_db, enter), (proxy_db, proxy), (gone_db, leave)):
         archive(gen_out_stream(kind), db)
 
-    print(f"Entered {entered} entries / {entered_bytes} bytes at {added_db} and ignored {total-entered} artifacts", file=sys.stderr)
-    print(f"Updated {updated} entries / {updated_bytes} bytesat {proxy_db}", file=sys.stderr)
-    print(f"Removed {left} entries / {left_bytes} bytesat {gone_db}", file=sys.stderr)
+    print(f"Entered {entered} entries / {entered_bytes} bytes at {added_db} ", file=sys.stderr)
+    print(f"Ignored {ignored} entries / {ignored_bytes} bytes for hashing", file=sys.stderr)
+    print(f"Updated {updated} entries / {updated_bytes} bytes at {proxy_db}", file=sys.stderr)
+    print(f"Removed {left} entries / {left_bytes} bytes at {gone_db}", file=sys.stderr)
     print(f"Total size in added files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
     print(f"Job visiting file store finished at {naive_timestamp()}", file=sys.stderr)
     return 0
