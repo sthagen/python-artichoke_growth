@@ -54,6 +54,7 @@ XZ_EXT = ".xz"
 
 def archive(stream, file_path):
     """Create .xz files for long term storage."""
+    file_path = pathlib.Path(file_path)  # HACK A DID ACK
     if file_path.suffixes[-1] != XZ_EXT:
         file_path = file_path.with_suffix(file_path.suffix + XZ_EXT)
     with lzma.open(file_path, "w", check=lzma.CHECK_SHA256, filters=XZ_FILTERS) as f:
