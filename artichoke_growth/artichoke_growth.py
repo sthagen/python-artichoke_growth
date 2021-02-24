@@ -232,6 +232,9 @@ def main(argv=None):
         else:
             del proxy[storage_hash]  # After processing proxy holds gone entries (tombstones)
 
+    for k in proxy:  # remove the entries matching a tombstone from the keeper
+        del keep[k]
+          
     added_db = pathlib.Path(STORE_PATH_DELTA, f"added-{db_timestamp(start_ts)}.csv")
     gone_db = pathlib.Path(STORE_PATH_DELTA, f"gone-{db_timestamp(start_ts)}.csv")
     proxy_db = pathlib.Path(STORE_PATH_PROXY, f"proxy-{db_timestamp(start_ts)}.csv")
