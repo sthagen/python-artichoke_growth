@@ -66,6 +66,17 @@ def archive(stream, file_path):
             f.write(entry.encode(encoding=ENCODING, errors=ENCODING_ERRORS_POLICY))
 
 
+def load(proxy_db_path):
+    """Load the proxy data as dict."""
+    file_path = pathlib.Path(proxy_db_path)  # HACK A DID ACK
+    if file_path.suffixes[-1] == XZ_EXT:
+        with lzma.open(file_path, mode='rt', encoding=ENCODING, errors=ENCODING_ERRORS_POLICY) as handle:
+            return {row[0]: row[1:] for row in csv.reader(handle, delimiter=',', quotechar='|')}
+    else:
+        with open(proxy_db_path, newline='') as handle:
+            return {row[0]: row[1:] for row in csv.reader(handle, delimiter=',', quotechar='|')}
+
+
 def by_name(text, hash_length):
     """Fast and shallow hash rep validity probe."""
     hash_rep_length, base = hash_length, 16
@@ -106,12 +117,6 @@ def walk_hashed_files(base_path):
     for data_folder in base_path.iterdir():
         for file_path in data_folder.iterdir():
             yield file_path
-
-
-def load(proxy_db_path):
-    """Load the proxy data as dict."""
-    with open(proxy_db_path, newline='') as handle:
-        return {row[0]: row[1:] for row in csv.reader(handle, delimiter=',', quotechar='|')}
 
 
 def elf_hash(some_bytes: bytes):
@@ -196,10 +201,9 @@ def main(argv=None):
         return 2
 
     proxy = load(brm_proxy_db)
-    historic = len(proxy)
-    keep = copy.deepcopy(proxy)
-    add = {}
-    print(f"Read {historic} from {brm_proxy_db} artifacts below {brm_fs_root}", file=sys.stderr)
+    previous = len(proxy)
+    enter, update, leave = {}, set(), {}
+    print(f"Read {previous} from {brm_proxy_db} artifacts below {brm_fs_root}", file=sys.stderr)
 
     algorithms = None
     if brm_hash_policy != BRM_HASH_POLICY_DEFAULT:
@@ -215,8 +219,6 @@ def main(argv=None):
     found_bytes, total = 0, 0
     for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
         total += 1
-        DEBUG and print("=" * 80, file=sys.stderr)
-        DEBUG and print(f"Processing {file_path} ...", file=sys.stderr)
         storage_hash = file_path.name
         if not file_path.is_file():
             continue
@@ -227,27 +229,37 @@ def main(argv=None):
             fps = f'{",".join([f"{k}:{v}" for k, v in fingerprints.items()])}'
             f_stat = file_metrics(file_path)
             found_bytes += f_stat.st_size
-            add[storage_hash] = (storage_hash, str(f_stat.st_size), str(f_stat.st_ctime), str(f_stat.st_mtime), fps, mime_type(file_path))
-            keep[storage_hash] = copy.deepcopy(add[storage_hash])
+            enter[storage_hash] = (storage_hash, str(f_stat.st_size), str(f_stat.st_ctime), str(f_stat.st_mtime), fps, mime_type(file_path))
         else:
-            del proxy[storage_hash]  # After processing proxy holds gone entries (tombstones)
+            update.add(storage_hash)
 
-    for k in proxy:  # remove the entries matching a tombstone from the keeper
-        del keep[k]
-          
+    entered_bytes, updated_bytes, left_bytes = 0, 0, 0
+    for k, v in proxy:
+        if k in update:
+            updated_bytes += int(v[1])
+        else:
+            left_bytes += int(v[1])
+            leave[k] = copy.deepcopy(v)
+            del proxy[k]
+
+    for k, v in enter:
+        entered_bytes += int(v[1])
+        proxy[k] = copy.deepcopy(v)
+    updated_bytes += entered_bytes
+
     added_db = pathlib.Path(STORE_PATH_DELTA, f"added-{db_timestamp(start_ts)}.csv")
-    gone_db = pathlib.Path(STORE_PATH_DELTA, f"gone-{db_timestamp(start_ts)}.csv")
     proxy_db = pathlib.Path(STORE_PATH_PROXY, f"proxy-{db_timestamp(start_ts)}.csv")
+    gone_db = pathlib.Path(STORE_PATH_DELTA, f"gone-{db_timestamp(start_ts)}.csv")
 
-    added, gone, kept = len(add), len(proxy), len(keep)
+    entered, updated, left = len(enter), len(proxy), len(leave)
 
-    for db, kind in ((added_db, add), (gone_db, proxy), (proxy_db, keep)):
+    for db, kind in ((added_db, enter), (proxy_db, proxy), (gone_db, leave)):
         archive(gen_out_stream(kind), db)
 
-    print(f"Added {added} at {added_db} and ignored {total-added} artifacts", file=sys.stderr)
-    print(f"Moved {gone} to tombstones at {gone_db}", file=sys.stderr)
-    print(f"Updated Proxy (keep) with {kept} total entries at {proxy_db}", file=sys.stderr)
-    print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
+    print(f"Entered {entered} entries / {entered_bytes} bytes at {added_db} and ignored {total-entered} artifacts", file=sys.stderr)
+    print(f"Updated {updated} entries / {updated_bytes} bytesat {proxy_db}", file=sys.stderr)
+    print(f"Removed {left} entries / {left_bytes} bytesat {gone_db}", file=sys.stderr)
+    print(f"Total size in added files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
     print(f"Job visiting file store finished at {naive_timestamp()}", file=sys.stderr)
     return 0
 
