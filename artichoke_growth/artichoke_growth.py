@@ -159,7 +159,7 @@ def mime_type(file_path):
 
 
 def serialize(storage_hash, f_stat, fps, file_type):
-    """x"""
+    """x"""  #TODO(sthagen) round trip has become a mess - fix it
     size_bytes, c_time, m_time = f_stat.st_size, f_stat.st_ctime, f_stat.st_mtime
     return f"{','.join((storage_hash, str(size_bytes), str(c_time), str(m_time), fps, file_type))}\n"
 
@@ -203,7 +203,7 @@ def main(argv=None):
                 found_bytes += f_stat.st_size
                 entry = (storage_hash, f_stat, fps, mime_type(file_path))
                 csv_handle.write(serialize(*entry))
-                keep[storage_hash] = (storage_hash, str(f_stat.size_bytes), str(f_stat.c_time), str(f_stat.m_time), fps, mime_type(file_path))
+                keep[storage_hash] = (storage_hash, str(f_stat.st_size), str(f_stat.st_ctime), str(f_stat.st_mtime), fps, mime_type(file_path))
             if storage_hash in proxy:
                 del proxy[storage_hash]  # After processing proxy holds gone entries (tombstones)
 
