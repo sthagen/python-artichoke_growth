@@ -218,14 +218,18 @@ def main(argv=None):
         DEBUG and print("=" * 80, file=sys.stderr)
         DEBUG and print(f"Processing {file_path} ...", file=sys.stderr)
         storage_hash = file_path.name
-        if file_path.is_file() and storage_hash not in proxy and possible_hash(storage_hash, brm_hash_policy):
+        if not file_path.is_file():
+            continue
+        if not possible_hash(storage_hash, brm_hash_policy):
+            continue
+        if storage_hash not in proxy:
             fingerprints = hashes(file_path, algorithms)
             fps = f'{",".join([f"{k}:{v}" for k, v in fingerprints.items()])}'
             f_stat = file_metrics(file_path)
             found_bytes += f_stat.st_size
             add[storage_hash] = (storage_hash, str(f_stat.st_size), str(f_stat.st_ctime), str(f_stat.st_mtime), fps, mime_type(file_path))
             keep[storage_hash] = copy.deepcopy(add[storage_hash])
-        if storage_hash in proxy:
+        else:
             del proxy[storage_hash]  # After processing proxy holds gone entries (tombstones)
 
     added_db = pathlib.Path(STORE_PATH_DELTA, f"added-{db_timestamp(start_ts)}.csv")
@@ -237,7 +241,7 @@ def main(argv=None):
     for db, kind in ((added_db, add), (gone_db, proxy), (proxy_db, keep)):
         archive(gen_out_stream(kind), db)
 
-    print(f"Added {added} at {added_db} and ignored {total-added} artifacts below {brm_fs_root}", file=sys.stderr)
+    print(f"Added {added} at {added_db} and ignored {total-added} artifacts", file=sys.stderr)
     print(f"Moved {gone} to tombstones at {gone_db}", file=sys.stderr)
     print(f"Updated Proxy (keep) with {kept} total entries at {proxy_db}", file=sys.stderr)
     print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
