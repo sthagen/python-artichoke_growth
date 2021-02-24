@@ -6,6 +6,7 @@ import copy
 import csv
 import datetime as dti
 import hashlib
+import lzma
 import os
 import pathlib
 import subprocess
@@ -46,6 +47,18 @@ TS_FORMAT_HR = "%Y-%m-%d %H:%M:%S"
 TS_FORMAT_DB = "%Y%m%dT%H%M%SZ"
 GIGA = 2 << (30 - 1)
 BUFFER_BYTES = 2 << 15
+
+XZ_FILTERS = [{"id": lzma.FILTER_LZMA2, "preset": 7 | lzma.PRESET_EXTREME}]
+XZ_EXT = ".xz"
+
+
+def archive(stream, file_path):
+    """Create .xz files for long term storage."""
+    if file_path.suffixes[-1] != XZ_EXT:
+        file_path = file_path.with_suffix(file_path.suffix + XZ_EXT)
+    with lzma.open(file_path, "w", check=lzma.CHECK_SHA256, filters=XZ_FILTERS) as f:
+        for entry in stream:
+            f.write(entry)
 
 
 def by_name(text, hash_length):
@@ -159,9 +172,15 @@ def mime_type(file_path):
 
 
 def serialize(storage_hash, f_stat, fps, file_type):
-    """x"""  #TODO(sthagen) round trip has become a mess - fix it
+    """x"""  # TODO(sthagen) round trip has become a mess - fix it
     size_bytes, c_time, m_time = f_stat.st_size, f_stat.st_ctime, f_stat.st_mtime
     return f"{','.join((storage_hash, str(size_bytes), str(c_time), str(m_time), fps, file_type))}\n"
+
+
+def gen_out_stream(kind):
+    """DRY"""
+    for k, v in kind.items():
+        yield f"{','.join((k, *v))}\n"
 
 
 def main(argv=None):
@@ -172,7 +191,10 @@ def main(argv=None):
         return 2
 
     proxy = load(brm_proxy_db)
+    historic = len(proxy)
     keep = copy.deepcopy(proxy)
+    add = {}
+    print(f"Read {historic} from {brm_proxy_db} artifacts below {brm_fs_root}", file=sys.stderr)
 
     algorithms = None
     if brm_hash_policy != BRM_HASH_POLICY_DEFAULT:
@@ -183,43 +205,36 @@ def main(argv=None):
         print(f"Warning: Store seems to use ({BRM_HASH_POLICY_LEGACY}) - adding ({BRM_HASH_POLICY_DEFAULT})")
 
     start_ts = dti.datetime.now()
+
+    print(f"Job visiting file store starts at {naive_timestamp(start_ts)}", file=sys.stderr)
+    found_bytes, total = 0, 0
+    for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
+        total += 1
+        DEBUG and print("=" * 80, file=sys.stderr)
+        DEBUG and print(f"Processing {file_path} ...", file=sys.stderr)
+        storage_hash = file_path.name
+        if file_path.is_file() and storage_hash not in proxy and possible_hash(storage_hash, brm_hash_policy):
+            fingerprints = hashes(file_path, algorithms)
+            fps = f'{",".join([f"{k}:{v}" for k, v in fingerprints.items()])}'
+            f_stat = file_metrics(file_path)
+            found_bytes += f_stat.st_size
+            add[storage_hash] = (storage_hash, str(f_stat.st_size), str(f_stat.st_ctime), str(f_stat.st_mtime), fps, mime_type(file_path))
+            keep[storage_hash] = copy.deepcopy(add[storage_hash])
+        if storage_hash in proxy:
+            del proxy[storage_hash]  # After processing proxy holds gone entries (tombstones)
+
     added_db = f"added-{db_timestamp(start_ts)}.csv"
     gone_db = f"gone-{db_timestamp(start_ts)}.csv"
     proxy_db = f"proxy-{db_timestamp(start_ts)}.csv"
 
-    print(f"Job visiting file store starts at {naive_timestamp(start_ts)}", file=sys.stderr)
-    found, found_bytes, total = 0, 0, 0
-    with open(added_db, "wt") as csv_handle:
-        for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
-            total += 1
-            DEBUG and print("=" * 80, file=sys.stderr)
-            DEBUG and print(f"Processing {file_path} ...", file=sys.stderr)
-            storage_hash = file_path.name
-            if file_path.is_file() and storage_hash not in proxy and possible_hash(storage_hash, brm_hash_policy):
-                found += 1
-                fingerprints = hashes(file_path, algorithms)
-                fps = f'{",".join([f"{k}:{v}" for k, v in fingerprints.items()])}'
-                f_stat = file_metrics(file_path)
-                found_bytes += f_stat.st_size
-                entry = (storage_hash, f_stat, fps, mime_type(file_path))
-                csv_handle.write(serialize(*entry))
-                keep[storage_hash] = (storage_hash, str(f_stat.st_size), str(f_stat.st_ctime), str(f_stat.st_mtime), fps, mime_type(file_path))
-            if storage_hash in proxy:
-                del proxy[storage_hash]  # After processing proxy holds gone entries (tombstones)
+    added, gone, kept = len(add), len(proxy), len(keep)
 
-    gone = len(proxy)
-    with open(gone_db, "wt") as csv_handle:
-        for k, v in proxy.items():
-            csv_handle.write(f"{','.join((k, *v))}\n")
+    for db, kind in ((added_db, add), (gone_db, proxy), (proxy_db, keep)):
+        archive(gen_out_stream(kind), db)
 
-    kept = len(keep)
-    with open(proxy_db, "wt") as csv_handle:
-        for k, v in keep.items():
-            csv_handle.write(f"{','.join((k, *v))}\n")
-
-    print(f"Added {found} at {added_db} and ignored {total-found} artifacts below {brm_fs_root}", file=sys.stderr)
-    print(f"Identified {gone} tombstones at {gone_db}", file=sys.stderr)
-    print(f"Updated Proxy has {kept} entries at {proxy_db}", file=sys.stderr)
+    print(f"Added {added} at {added_db} and ignored {total-added} artifacts below {brm_fs_root}", file=sys.stderr)
+    print(f"Moved {gone} to tombstones at {gone_db}", file=sys.stderr)
+    print(f"Updated Proxy (keep) with {kept} total entries at {proxy_db}", file=sys.stderr)
     print(f"Total size in files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
     print(f"Job visiting file store finished at {naive_timestamp()}", file=sys.stderr)
     return 0
