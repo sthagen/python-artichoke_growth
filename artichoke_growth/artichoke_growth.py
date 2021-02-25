@@ -200,10 +200,11 @@ def main(argv=None):
         print("ERROR no arguments expected.", file=sys.stderr)
         return 2
 
+    brm_proxy_db_path = brm_proxy_db
     if brm_proxy_db == "AUTO":
-        brm_proxy_db = tuple(reversed(sorted(STORE_PATH_PROXY.glob("proxy-*.csv.xz"))))[0]
+        brm_proxy_db_path = tuple(reversed(sorted(STORE_PATH_PROXY.glob("proxy-*.csv.xz"))))[0]
 
-    proxy = load(brm_proxy_db)
+    proxy = load(brm_proxy_db_path)
     previous = len(proxy)
     enter, update, leave = {}, set(), {}
     print(f"Read {previous} from {brm_proxy_db} artifacts below {brm_fs_root}", file=sys.stderr)
