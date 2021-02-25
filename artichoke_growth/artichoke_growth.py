@@ -71,10 +71,10 @@ def load(proxy_db_path):
     file_path = pathlib.Path(proxy_db_path)  # HACK A DID ACK
     if file_path.suffixes[-1] == XZ_EXT:
         with lzma.open(file_path, mode='rt', encoding=ENCODING, errors=ENCODING_ERRORS_POLICY) as handle:
-            return {row[0]: row[1:] for row in csv.reader(handle, delimiter=',', quotechar='|')}
+            return {row[0]: row[0:] for row in csv.reader(handle, delimiter=',', quotechar='|')}
     else:
         with open(proxy_db_path, newline='') as handle:
-            return {row[0]: row[1:] for row in csv.reader(handle, delimiter=',', quotechar='|')}
+            return {row[0]: row[0:] for row in csv.reader(handle, delimiter=',', quotechar='|')}
 
 
 def by_name(text, hash_length):
