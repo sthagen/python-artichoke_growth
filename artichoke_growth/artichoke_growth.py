@@ -261,7 +261,7 @@ def main(argv=None):
 
     print(f"Entered {entered} entries / {entered_bytes} bytes at {added_db} ", file=sys.stderr)
     print(f"Ignored {ignored} entries / {ignored_bytes} bytes for hashing", file=sys.stderr)
-    print(f"Updated {updated} entries / {updated_bytes} bytes at {proxy_db}", file=sys.stderr)
+    print(f"Kept {updated} entries / {updated_bytes} bytes at {proxy_db}", file=sys.stderr)
     print(f"Removed {left} entries / {left_bytes} bytes at {gone_db}", file=sys.stderr)
     print(f"Total size in added files is {found_bytes/GIGA:.2f} Gigabytes ({found_bytes} bytes)", file=sys.stderr)
     print(f"Job visiting file store finished at {naive_timestamp()}", file=sys.stderr)
