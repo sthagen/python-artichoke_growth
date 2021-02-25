@@ -200,6 +200,9 @@ def main(argv=None):
         print("ERROR no arguments expected.", file=sys.stderr)
         return 2
 
+    if brm_proxy_db == "AUTO":
+        brm_proxy_db = tuple(reversed(sorted(STORE_PATH_PROXY.glob("proxy-*.csv.xz"))))[0]
+
     proxy = load(brm_proxy_db)
     previous = len(proxy)
     enter, update, leave = {}, set(), {}
