@@ -189,8 +189,8 @@ def serialize(storage_hash, f_stat, fps, file_type):
 
 def gen_out_stream(kind):
     """DRY"""
-    for k, v in kind.items():
-        yield f"{','.join((k, *v))}\n"
+    for v in kind.values():
+        yield f"{','.join(v)}\n"
 
 
 def main(argv=None):
