@@ -239,18 +239,20 @@ def main(argv=None):
             update.add(storage_hash)
 
     entered_bytes, ignored_bytes, updated_bytes, left_bytes = 0, 0, 0, 0
+    keep = {}
     for k, v in proxy.items():
         if k in update:
             ignored_bytes += int(v[1])
+            keep[k] = copy.deepcopy(v)
         else:
             left_bytes += int(v[1])
             leave[k] = copy.deepcopy(v)
-            del proxy[k]
+
     updated_bytes += ignored_bytes
 
     for k, v in enter.items():
         entered_bytes += int(v[1])
-        proxy[k] = copy.deepcopy(v)
+        keep[k] = copy.deepcopy(v)
     updated_bytes += entered_bytes
 
     added_db = pathlib.Path(STORE_PATH_ENTER, f"added-{db_timestamp(start_ts)}.csv")
@@ -260,9 +262,9 @@ def main(argv=None):
     pathlib.Path(STORE_PATH_PROXY).mkdir(parents=True, exist_ok=True)
     pathlib.Path(STORE_PATH_TOMBS).mkdir(parents=True, exist_ok=True)
 
-    entered, updated, left = len(enter), len(proxy), len(leave)
+    entered, updated, left = len(enter), len(keep), len(leave)
     ignored = total-entered
-    for db, kind in ((added_db, enter), (proxy_db, proxy), (gone_db, leave)):
+    for db, kind in ((added_db, enter), (proxy_db, keep), (gone_db, leave)):
         archive(gen_out_stream(kind), db)
 
     print(f"Entered {entered} entries / {entered_bytes} bytes at {added_db} ", file=sys.stderr)
