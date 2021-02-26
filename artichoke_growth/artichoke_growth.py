@@ -49,7 +49,8 @@ GIGA = 2 << (30 - 1)
 BUFFER_BYTES = 2 << 15
 
 STORE_ROOT = "store"
-STORE_PATH_DELTA = pathlib.Path(STORE_ROOT, "delta")
+STORE_PATH_ENTER = pathlib.Path(STORE_ROOT, "enter")
+STORE_PATH_TOMBS = pathlib.Path(STORE_ROOT, "tombs")
 STORE_PATH_PROXY = pathlib.Path(STORE_ROOT, "proxy")
 
 XZ_FILTERS = [{"id": lzma.FILTER_LZMA2, "preset": 7 | lzma.PRESET_EXTREME}]
@@ -252,11 +253,12 @@ def main(argv=None):
         proxy[k] = copy.deepcopy(v)
     updated_bytes += entered_bytes
 
-    added_db = pathlib.Path(STORE_PATH_DELTA, f"added-{db_timestamp(start_ts)}.csv")
+    added_db = pathlib.Path(STORE_PATH_ENTER, f"added-{db_timestamp(start_ts)}.csv")
     proxy_db = pathlib.Path(STORE_PATH_PROXY, f"proxy-{db_timestamp(start_ts)}.csv")
-    gone_db = pathlib.Path(STORE_PATH_DELTA, f"gone-{db_timestamp(start_ts)}.csv")
-    pathlib.Path(STORE_PATH_DELTA).mkdir(parents=True, exist_ok=True)
+    gone_db = pathlib.Path(STORE_PATH_TOMBS, f"gone-{db_timestamp(start_ts)}.csv")
+    pathlib.Path(STORE_PATH_ENTER).mkdir(parents=True, exist_ok=True)
     pathlib.Path(STORE_PATH_PROXY).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(STORE_PATH_TOMBS).mkdir(parents=True, exist_ok=True)
 
     entered, updated, left = len(enter), len(proxy), len(leave)
     ignored = total-entered
