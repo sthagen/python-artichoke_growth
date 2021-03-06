@@ -207,6 +207,12 @@ def gen_out_stream(kind):
         yield f"{','.join(v)}\n"
 
 
+def derive_fingerprints(algorithms, file_path):
+    fingerprints = hashes(file_path, algorithms)
+    fps = f'{",".join([f"{k}:{v}" for k, v in fingerprints.items()])}'
+    return fps
+
+
 def visit_store(algorithms, enter, proxy, update):
     found_bytes, total = 0, 0
     for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
@@ -217,8 +223,7 @@ def visit_store(algorithms, enter, proxy, update):
         if not possible_hash(storage_hash, brm_hash_policy):
             continue
         if storage_hash not in proxy:
-            fingerprints = hashes(file_path, algorithms)
-            fps = f'{",".join([f"{k}:{v}" for k, v in fingerprints.items()])}'
+            fps = derive_fingerprints(algorithms, file_path)
             f_stat = file_metrics(file_path)
             found_bytes += f_stat.st_size
             enter[storage_hash] = (storage_hash, str(f_stat.st_size), str(f_stat.st_ctime), str(f_stat.st_mtime), fps, mime_type(file_path))
