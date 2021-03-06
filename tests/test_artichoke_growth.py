@@ -147,3 +147,8 @@ def test_naive_timestamp():
 def test_db_timestamp():
     now = dti.datetime.now()
     assert ag.db_timestamp(now) == now.strftime(ag.TS_FORMAT_DB)
+
+
+def test_distribute_changes_ok_minimal():
+    enter, leave, keep, proxy, update = {}, {}, {}, {}, {}
+    assert ag.distribute_changes(enter, leave, keep, proxy, update) == (0, 0, 0, 0)
