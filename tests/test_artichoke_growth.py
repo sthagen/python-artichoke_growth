@@ -142,3 +142,8 @@ def test_gen_out_stream_ok_minimal():
 def test_naive_timestamp():
     now = dti.datetime.now()
     assert ag.naive_timestamp(now) == now.strftime(ag.TS_FORMAT_HR)
+
+
+def test_db_timestamp():
+    now = dti.datetime.now()
+    assert ag.db_timestamp(now) == now.strftime(ag.TS_FORMAT_DB)
