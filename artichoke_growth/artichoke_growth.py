@@ -207,6 +207,26 @@ def gen_out_stream(kind):
         yield f"{','.join(v)}\n"
 
 
+def visit_store(algorithms, enter, proxy, update):
+    found_bytes, total = 0, 0
+    for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
+        total += 1
+        storage_hash = file_path.name
+        if not file_path.is_file():
+            continue
+        if not possible_hash(storage_hash, brm_hash_policy):
+            continue
+        if storage_hash not in proxy:
+            fingerprints = hashes(file_path, algorithms)
+            fps = f'{",".join([f"{k}:{v}" for k, v in fingerprints.items()])}'
+            f_stat = file_metrics(file_path)
+            found_bytes += f_stat.st_size
+            enter[storage_hash] = (storage_hash, str(f_stat.st_size), str(f_stat.st_ctime), str(f_stat.st_mtime), fps, mime_type(file_path))
+        else:
+            update.add(storage_hash)
+    return found_bytes, total
+
+
 def distribute_changes(enter, leave, keep, proxy, update):
     entered_bytes, ignored_bytes, updated_bytes, left_bytes = 0, 0, 0, 0
     for k, v in proxy.items():
@@ -261,22 +281,7 @@ def main(argv=None):
     start_ts = dti.datetime.now()
 
     print(f"Job visiting file store starts at {naive_timestamp(start_ts)}", file=sys.stderr)
-    found_bytes, total = 0, 0
-    for file_path in walk_hashed_files(pathlib.Path(brm_fs_root)):
-        total += 1
-        storage_hash = file_path.name
-        if not file_path.is_file():
-            continue
-        if not possible_hash(storage_hash, brm_hash_policy):
-            continue
-        if storage_hash not in proxy:
-            fingerprints = hashes(file_path, algorithms)
-            fps = f'{",".join([f"{k}:{v}" for k, v in fingerprints.items()])}'
-            f_stat = file_metrics(file_path)
-            found_bytes += f_stat.st_size
-            enter[storage_hash] = (storage_hash, str(f_stat.st_size), str(f_stat.st_ctime), str(f_stat.st_mtime), fps, mime_type(file_path))
-        else:
-            update.add(storage_hash)
+    found_bytes, total = visit_store(algorithms, enter, proxy, update)
 
     keep = {}
     entered_bytes, ignored_bytes, left_bytes, updated_bytes = distribute_changes(enter, leave, keep, proxy, update)
