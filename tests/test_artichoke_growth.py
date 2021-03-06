@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring,unused-import,reimported
+import datetime as dti
 import os
 import pathlib
 import pytest  # type: ignore
@@ -136,3 +137,8 @@ def test_gen_out_stream_ok_minimal():
     kind = {'_': 'a'}
     for line in ag.gen_out_stream(kind):
         assert line == f"{kind['_']}\n"
+
+
+def test_naive_timestamp():
+    now = dti.datetime.now()
+    assert ag.naive_timestamp(now) == now.strftime(ag.TS_FORMAT_HR)
