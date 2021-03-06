@@ -224,6 +224,16 @@ def distribute_changes(enter, leave, keep, proxy, update):
     return entered_bytes, ignored_bytes, left_bytes, updated_bytes
 
 
+def derive_proxy_pahs(start_ts):
+    added_db = pathlib.Path(STORE_PATH_ENTER, f"added-{db_timestamp(start_ts)}.csv")
+    proxy_db = pathlib.Path(STORE_PATH_PROXY, f"proxy-{db_timestamp(start_ts)}.csv")
+    gone_db = pathlib.Path(STORE_PATH_TOMBS, f"gone-{db_timestamp(start_ts)}.csv")
+    pathlib.Path(STORE_PATH_ENTER).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(STORE_PATH_PROXY).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(STORE_PATH_TOMBS).mkdir(parents=True, exist_ok=True)
+    return added_db, gone_db, proxy_db
+
+
 def main(argv=None):
     """Drive the tree visitor."""
     argv = argv if argv else sys.argv[1:]
@@ -271,12 +281,7 @@ def main(argv=None):
     keep = {}
     entered_bytes, ignored_bytes, left_bytes, updated_bytes = distribute_changes(enter, leave, keep, proxy, update)
 
-    added_db = pathlib.Path(STORE_PATH_ENTER, f"added-{db_timestamp(start_ts)}.csv")
-    proxy_db = pathlib.Path(STORE_PATH_PROXY, f"proxy-{db_timestamp(start_ts)}.csv")
-    gone_db = pathlib.Path(STORE_PATH_TOMBS, f"gone-{db_timestamp(start_ts)}.csv")
-    pathlib.Path(STORE_PATH_ENTER).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(STORE_PATH_PROXY).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(STORE_PATH_TOMBS).mkdir(parents=True, exist_ok=True)
+    added_db, gone_db, proxy_db = derive_proxy_pahs(start_ts)
 
     entered, updated, left = len(enter), len(keep), len(leave)
     ignored = total-entered
