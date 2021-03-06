@@ -114,11 +114,22 @@ def db_timestamp(timestamp=None):
 
 
 def walk_hashed_files(base_path):
-    """Visit the files in the folders below base path."""
-    # for data_folder in base_path.iterdir():
-    #     for file_path in data_folder.iterdir():
-    #         yield file_path
+    """Visit the files in the folders below base path.
+    Either:
+    for data_folder in base_path.iterdir():
+        for file_path in data_folder.iterdir():
+            yield file_path
+    or:
     for file_path in base_path.rglob('*/*'):
+        yield file_path
+    both return entries in different orders per platform.
+
+    Implementer Note:
+    -----------------
+    This allocates a list (for sorting) - so be aware
+    when operating on bucket stores with many entries ...
+    """
+    for file_path in sorted(base_path.rglob('*/*')):
         yield file_path
 
 
