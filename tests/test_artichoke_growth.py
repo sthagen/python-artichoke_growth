@@ -130,3 +130,9 @@ def test_serialize_ok_minimal():
     file_type = 'my/mime'
     expectation = f"{','.join((some_hash, str(fake_stat.st_size), str(fake_stat.st_ctime), str(fake_stat.st_mtime), fps, file_type))}\n"
     assert ag.serialize(some_hash, fake_stat, fps, file_type) == expectation
+
+
+def test_gen_out_stream_ok_minimal():
+    kind = {'_': 'a'}
+    for line in ag.gen_out_stream(kind):
+        assert line == f"{kind['_']}\n"
