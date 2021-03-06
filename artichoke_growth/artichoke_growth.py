@@ -207,9 +207,8 @@ def gen_out_stream(kind):
         yield f"{','.join(v)}\n"
 
 
-def distribute_changes(enter, leave, proxy, update):
+def distribute_changes(enter, leave, keep, proxy, update):
     entered_bytes, ignored_bytes, updated_bytes, left_bytes = 0, 0, 0, 0
-    keep = {}
     for k, v in proxy.items():
         if k in update:
             ignored_bytes += int(v[1])
@@ -222,7 +221,7 @@ def distribute_changes(enter, leave, proxy, update):
         entered_bytes += int(v[1])
         keep[k] = copy.deepcopy(v)
     updated_bytes += entered_bytes
-    return entered_bytes, ignored_bytes, keep, left_bytes, updated_bytes
+    return entered_bytes, ignored_bytes, left_bytes, updated_bytes
 
 
 def main(argv=None):
@@ -269,7 +268,8 @@ def main(argv=None):
         else:
             update.add(storage_hash)
 
-    entered_bytes, ignored_bytes, keep, left_bytes, updated_bytes = distribute_changes(enter, leave, proxy, update)
+    keep = {}
+    entered_bytes, ignored_bytes, left_bytes, updated_bytes = distribute_changes(enter, leave, keep, proxy, update)
 
     added_db = pathlib.Path(STORE_PATH_ENTER, f"added-{db_timestamp(start_ts)}.csv")
     proxy_db = pathlib.Path(STORE_PATH_PROXY, f"proxy-{db_timestamp(start_ts)}.csv")
