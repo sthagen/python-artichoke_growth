@@ -115,9 +115,11 @@ def db_timestamp(timestamp=None):
 
 def walk_hashed_files(base_path):
     """Visit the files in the folders below base path."""
-    for data_folder in base_path.iterdir():
-        for file_path in data_folder.iterdir():
-            yield file_path
+    # for data_folder in base_path.iterdir():
+    #     for file_path in data_folder.iterdir():
+    #         yield file_path
+    for file_path in base_path.rglob('*/*'):
+        yield file_path
 
 
 def elf_hash(some_bytes: bytes):
