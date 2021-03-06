@@ -134,7 +134,7 @@ def walk_hashed_files(base_path):
 
 
 def elf_hash(some_bytes: bytes):
-    """The ELF hash.
+    """The ELF hash (Extremely Lossy Function - also used in ELF format).
 
     unsigned long ElfHash(const unsigned char *s) {
         unsigned long h = 0, high;
