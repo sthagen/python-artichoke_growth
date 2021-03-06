@@ -115,3 +115,18 @@ def test_mime_type_nok_no_file():
 
 def test_elf_hash():
     assert ag.elf_hash(b'msbuild.exe') == 0x53D525
+
+
+def test_serialize_ok_minimal():
+    some_hash = 'cafe'
+
+    class Mock:
+        pass
+    fake_stat = Mock()
+    fake_stat.st_size = 1
+    fake_stat.st_ctime = 2
+    fake_stat.st_mtime = 3
+    fps = 'fingerprints'
+    file_type = 'my/mime'
+    expectation = f"{','.join((some_hash, str(fake_stat.st_size), str(fake_stat.st_ctime), str(fake_stat.st_mtime), fps, file_type))}\n"
+    assert ag.serialize(some_hash, fake_stat, fps, file_type) == expectation
