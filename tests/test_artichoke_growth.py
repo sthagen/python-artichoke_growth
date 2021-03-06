@@ -152,3 +152,12 @@ def test_db_timestamp():
 def test_distribute_changes_ok_minimal():
     enter, leave, keep, proxy, update = {}, {}, {}, {}, {}
     assert ag.distribute_changes(enter, leave, keep, proxy, update) == (0, 0, 0, 0)
+
+
+def test_derive_proxy_paths_ok_minimal():
+    now = dti.datetime.now()
+    mark = now.strftime(ag.TS_FORMAT_DB)
+    added_db = pathlib.Path('store', 'enter', f'added-{mark}.csv')
+    gone_db = pathlib.Path('store', 'tombs', f'gone-{mark}.csv')
+    proxy_db = pathlib.Path('store', 'proxy', f'proxy-{mark}.csv')
+    assert ag.derive_proxy_paths(now) == (added_db, gone_db, proxy_db)
