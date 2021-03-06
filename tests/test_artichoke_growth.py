@@ -90,8 +90,11 @@ def test_file_metrics_ok_sha256():
 def test_mime_type_ok_sha1():
     data = ag.walk_hashed_files(prefix_data_sha1)
     a_file_path = next(data)
-    expectation = 'application/zip; charset=binary'
-    assert ag.mime_type(a_file_path) == expectation
+    # expectation = 'application/zip; charset=binary'  # depends on external tool version and flavor
+    baseline_elements = ('app', 'zip')
+    mime_type = ag.mime_type(a_file_path)
+    for element in baseline_elements:
+        assert element in mime_type
 
 
 def test_mime_type_ok_sha256():
