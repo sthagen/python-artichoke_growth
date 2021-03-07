@@ -2,7 +2,7 @@ FROM python:3.9-slim-buster
 RUN export DEBIAN_FRONTEND=noninteractive && \
 apt-get update && \
 apt-get -y upgrade && \
-apt-get install -y --no-install-recommends tini && \
+apt-get install -y --no-install-recommends tini file && \
 apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
