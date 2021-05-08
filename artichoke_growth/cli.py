@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long
-""""Visit folder tree of some binary repository management system and report statistics."""
+"""Visit folder tree of some binary repository management system and report statistics."""
 import os
 import sys
 
